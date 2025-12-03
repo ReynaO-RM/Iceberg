@@ -328,6 +328,14 @@ function startGame() {
   updateScoreDisplay();
   addTreesRandomlyLoop();
 
+  const musicPlayer = document.getElementById('background-music-player');
+  if (musicPlayer && musicPlayer.components.sound) {
+    const sound = musicPlayer.components.sound;
+    if (!sound.isPlaying) {
+      sound.playSound();
+    }
+  }
+
   mirrorVR.notify('startGame', {})
 }
 
@@ -347,139 +355,6 @@ function setupInstructions() {
 
 setupControls(); 
 
-// ===== AGREGA ESTAS FUNCIONES AL FINAL DE RUNNER.JS =====
-
-// Función para activar el sonido
-function enableGameSound() {
-  const musicPlayer = document.getElementById('background-music-player');
-  if (musicPlayer && musicPlayer.components.sound) {
-    const sound = musicPlayer.components.sound;
-    
-    // Intentar reproducir
-    sound.playSound().then(() => {
-      console.log('Música iniciada correctamente');
-      hideSoundEnabler();
-      
-      // Mostrar notificación breve
-      showSoundEnabledNotification();
-      
-    }).catch(error => {
-      console.log('Error al iniciar música:', error);
-      // Mostrar mensaje de error
-      document.getElementById('enable-sound-btn').innerHTML = '⚠️ Intenta de nuevo';
-      document.getElementById('enable-sound-btn').style.background = '#ff9800';
-    });
-  }
-}
-
-// Función para ocultar el panel de activación
-function hideSoundEnabler() {
-  const soundEnabler = document.getElementById('sound-enabler');
-  if (soundEnabler) {
-    // Animación de desvanecimiento
-    soundEnabler.style.transition = 'opacity 0.5s';
-    soundEnabler.style.opacity = '0';
-    
-    setTimeout(() => {
-      soundEnabler.style.display = 'none';
-    }, 500);
-  }
-}
-
-// Función para mostrar notificación de sonido activado
-function showSoundEnabledNotification() {
-  const notification = document.createElement('div');
-  notification.innerHTML = '🎵 Sonido activado';
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #4CAF50;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-family: 'Exo 2';
-    z-index: 1002;
-    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-  `;
-  
-  // Agregar estilos de animación
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes fadeOut {
-      from { opacity: 1; }
-      to { opacity: 0; }
-    }
-  `;
-  document.head.appendChild(style);
-  
-  document.body.appendChild(notification);
-  
-  // Remover después de 3 segundos
-  setTimeout(() => {
-    if (notification.parentNode) {
-      notification.parentNode.removeChild(notification);
-    }
-  }, 3000);
-}
-
-// Función para configurar el botón de activación
-function setupSoundEnabler() {
-  const enableButton = document.getElementById('enable-sound-btn');
-  const soundEnabler = document.getElementById('sound-enabler');
-  
-  if (!enableButton || !soundEnabler) return;
-  
-  // Verificar si el sonido ya está activo (en caso de volver a cargar)
-  const musicPlayer = document.getElementById('background-music-player');
-  if (musicPlayer && musicPlayer.components.sound && musicPlayer.components.sound.isPlaying) {
-    soundEnabler.style.display = 'none';
-    return;
-  }
-  
-  // Efecto hover en el botón
-  enableButton.addEventListener('mouseenter', function() {
-    this.style.transform = 'scale(1.05)';
-    this.style.boxShadow = '0 6px 20px rgba(76, 175, 80, 0.4)';
-  });
-  
-  enableButton.addEventListener('mouseleave', function() {
-    this.style.transform = 'scale(1)';
-    this.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.3)';
-  });
-  
-  // Click para activar sonido
-  enableButton.addEventListener('click', function() {
-    this.innerHTML = '⏳ Activando...';
-    this.style.background = '#ff9800';
-    enableGameSound();
-  });
-  
-  // También permitir activar con tecla Enter
-  document.addEventListener('keydown', function(event) {
-    if (event.key === 'Enter' && soundEnabler.style.display !== 'none') {
-      enableGameSound();
-    }
-  });
-}
-
-// Función para verificar estado del sonido (opcional)
-function checkAudioStatus() {
-  const musicPlayer = document.getElementById('background-music-player');
-  if (musicPlayer && musicPlayer.components.sound) {
-    console.log('Estado audio:', {
-      isPlaying: musicPlayer.components.sound.isPlaying,
-      volume: musicPlayer.components.sound.volume,
-      autoplay: musicPlayer.components.sound.autoplay
-    });
-  }
-}
-// ===== FIN DE LAS NUEVAS FUNCIONES =====
-
 window.onload = function() {
   setupAllMenus();
   setupScore();
@@ -487,17 +362,6 @@ window.onload = function() {
   setupInstructions();
   setupCursor();
   setupMirrorVR();
-  
-  // Inicializar controles de música SI EXISTEN
-  if (typeof setupMusicControls !== 'undefined') {
-    setupMusicControls();
-  }
-  
-  // Inicializar activador de sonido
-  setupSoundEnabler();
-  
-  // Opcional: verificar estado del audio
-  setTimeout(checkAudioStatus, 1000);
 }
 
 /**
